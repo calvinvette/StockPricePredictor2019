@@ -23,7 +23,7 @@ public class StockPricePredictor {
 
         Properties consumerProps = new Properties();
         consumerProps.setProperty("bootstrap.servers", "localhost:9092");
-        consumerProps.setProperty("group.id", "test");
+        consumerProps.setProperty("group.id", "StockPricePredictor");
         consumerProps.setProperty("enable.auto.commit", "true");
         consumerProps.setProperty("auto.commit.interval.ms", "1000");
         consumerProps.setProperty("key.deserializer", "org.apache.kafka.common.serialization.StringDeserializer");
