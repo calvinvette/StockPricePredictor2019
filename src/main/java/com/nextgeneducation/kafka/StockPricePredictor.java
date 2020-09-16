@@ -33,6 +33,8 @@ public class StockPricePredictor {
 
         Properties producerProps = new Properties();
         producerProps.put("bootstrap.servers", "localhost:9092");
+        producerProps.put("bootstrap.server", "localhost:9092");
+        producerProps.put("broker-list", "localhost:9092");
         producerProps.put("acks", "all");
         producerProps.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
         producerProps.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
@@ -44,15 +46,24 @@ public class StockPricePredictor {
         while (!done) {
             ConsumerRecords<String, String> records = consumer.poll(Duration.ofMillis(1000));
 
+		int count = 0;
             for (ConsumerRecord<String, String> record : records) {
                 System.out.printf("offset = %d, key = %s, value = %s%n", record.offset(), record.key(), record.value());
 //                Float originalValue = 0F;
                 Float originalValue = Float.parseFloat(record.value().split("\t")[1]);
                 Float prediction = originalValue * (0.5F + (float) Math.random() * 100 / 100);
-                producer.send(new ProducerRecord<String, String>("stock_prices_predictions", record.key(), record.key() + "\t" + Float.toString(prediction)));
+		String key = record.key();
+		if (record.key() == null) {
+			key = record.value().split("\t")[0];
+		}
+		String value = key + "\t" + Float.toString(prediction);
+                producer.send(
+			new ProducerRecord<String, String>("stock_prices_predictions", key, value)
+		);
+		count++;
 
             }
-            System.out.println("Predicted Prices @" + new Date());
+            System.out.println("Predicted " + count + " Prices @" + new Date());
             producer.flush();
             Thread.sleep(5000);
         }
